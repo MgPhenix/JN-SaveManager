@@ -1,0 +1,9 @@
+{
+    "current": "Default",
+    "saves": {
+        "Default": "../../saves\\Default.txt",
+        "saves1": "../../saves\\saves1.txt",
+        "saves2": "../../saves\\saves2.txt",
+        "saves3": "../../saves\\saves3.txt"
+    }
+}

@@ -32,7 +32,7 @@ bool Platform::Init(const char* windowName, int windW, int windH, SDL_Window** w
 
 	if (renderer != nullptr)
 	{
-		SDL_CreateWindowAndRenderer(windowName, 800, 800, flags, window, renderer);
+		SDL_CreateWindowAndRenderer(windowName, windW, windH, flags, window, renderer);
 
 		if (!window)
 		{

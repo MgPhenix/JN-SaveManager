@@ -37,7 +37,8 @@
                     "SDL3.lib;%(AdditionalDependencies)"
                 ],
                 "additionalIncludeDirectories": [
-                    "$(SolutionDir)../lib/SDL3/include"
+                    "$(SolutionDir)../lib/SDL3/include",
+                    "$(SolutionDir)../lib/nlohmann"
                 ],
                 "additionalLibraryDirectories": [
                     "$(SolutionDir)../lib/SDL3/lib/x64"
@@ -55,11 +56,11 @@
                 "1775638D-2E29-0D9F-0D91-5E2E38AD4B21"
             ],
             "dependents": [],
-            "name": "Test",
+            "name": "SaveManager",
             "property-lib": false,
             "property-pch": false,
             "property-vcpkg": false,
-            "property-window": false
+            "property-window": true
         },
         "7C6D6D06-730D-3BB1-6B0F-34C835102D10": {
             "config-debug": {
@@ -98,7 +99,7 @@
         "Test": "1D803688-346B-71BE-1EFE-0903515A1211"
     },
     "solution_guid": "7C2F4F4B-4532-41BE-6D86-11584E100652",
-    "solution_name": "ImGuiTemplate",
+    "solution_name": "JN-SaveManager",
     "startup_project": "",
     "version": "2.0"
 }
