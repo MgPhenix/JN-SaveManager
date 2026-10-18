@@ -1,0 +1,104 @@
+name: Build Project
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows-x64
+          - os: ubuntu-latest
+            name: Linux-x64
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: SetUp MSCV
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $sources = @(
+            Get-ChildItem ImGUI, ImGuiWrapper, SaveManager -Recurse -Filter *.cpp |
+              ForEach-Object { $_.FullName }
+          )
+
+          if ($sources.Count -eq 0) {
+            throw "No C++ source files found"
+          }
+
+          $args = @(
+            "/nologo",
+            "/std:c++17",
+            "/EHsc",
+            "/MD",
+            "/O2",
+            "/DNDEBUG",
+            "/Ilib/SDL3/include",
+            "/Ilib/nlohmann"
+          ) + $sources + @(
+            "/Fe:SaveManager.exe",
+            "/link",
+            "/LIBPATH:lib/SDL3/lib/x64",
+            "SDL3.lib"
+          )
+
+          & cl.exe @args
+
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+          Copy-Item "lib/SDL3/lib/x64/SDL3.dll" "." -ErrorAction Stop
+
+
+      
+      - name: Build Linux/macOS
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -e
+
+          SOURCES=$(find ImGUI ImGuiWrapper SaveManager -type f -name '*.cpp')
+
+          if [ -z "$SOURCES" ]; then
+            echo "No C++ source files found"
+            exit 1
+          fi
+
+          g++ -std=c++17 -O2 -DNDEBUG \
+            -Ilib/SDL3/include \
+            -Ilib/nlohmann \
+            $SOURCES \
+            $(pkg-config --cflags --libs sdl3) \
+            -o SaveManager
+
+
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: JN-SaveManager-${{ matrix.name }}
+          path: bin/JN-SaveManager*
