@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 
 #include "SDL3/SDL.h"
@@ -26,7 +27,8 @@ std::filesystem::path GetJustNatsukiPath()
 
 	return std::filesystem::path(appData)
 		/ "RenPy"
-		/ "JustNatsuki";
+		/ "JustNatsuki"
+		/ "persistent";
 
 #elif defined(__linux__)
 
@@ -37,7 +39,8 @@ std::filesystem::path GetJustNatsukiPath()
 
 	return std::filesystem::path(home)
 		/ ".renpy"
-		/ "JustNatsuki";
+		/ "JustNatsuki"
+		/ "persistent";
 
 #endif
 }
@@ -48,22 +51,17 @@ std::filesystem::path GetJustNatsukiPath()
 	std::filesystem::path json_path = "../../data/data.json";
 	std::filesystem::path current_save_path = "../../destination/persistant.txt";
 #else
-	std::filesystem::path save_directory = "saves";
+	std::filesystem::path save_directory = "../../saves";
 
-	std::filesystem::path json_path = "data/data.json";
-	std::filesystem::path current_save_path = "destination/persistant.txt";
+	std::filesystem::path json_path = "../../data/data.json";
+	std::filesystem::path current_save_path = GetJustNatsukiPath();
 #endif // DEBUG
 
 
 
 void MoveFile(std::filesystem::path path, std::filesystem::path new_path)
 {
-	if (!std::filesystem::exists(path))
-	{
-		std::cout << "path does not exist : " << path << std::endl;
-		return;
-	}
-	std::filesystem::copy(path, new_path);
+	std::filesystem::copy_file(path, new_path);
 	std::filesystem::remove(path);
 }
 
@@ -97,23 +95,25 @@ void ScanData(json& data)
 void ChangeToNewSave(json& data, const std::string& new_name)
 {
 	std::filesystem::path current_save = data.value("current", "Default");
-	std::filesystem::path current_path = data["saves"].value(current_save, save_directory / "Default.txt");
+	std::filesystem::path current_path = data["saves"].value(current_save, save_directory / "Default");
 
-	int i = 0;
+	int i = 1;
 	while (std::filesystem::exists(current_path))
 	{
-		current_path = save_directory / ("Default" + std::to_string(i) + ".txt");
+		current_path = save_directory / ("Default" + std::to_string(i));
 		i++;
 	}
 
 	MoveFile(current_save_path, current_path.c_str());
 
 	data["current"] = new_name;
-	std::filesystem::path new_path = data["saves"].value(new_name, save_directory / "Default.txt");
+	std::filesystem::path new_path = data["saves"].value(new_name, save_directory / "Default");
 	MoveFile(new_path.c_str(), current_save_path);
 
 	std::ofstream out(json_path);
 	out << data.dump(4);
+
+	ScanData(data);
 }
 
 ImFont* AddDefaultFont(float pixel_size)
